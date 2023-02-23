@@ -1,0 +1,203 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Vue - listagem, inserção e edição de patentes</title>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="css/estilos.css" />
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+        <script src="https://unpkg.com/vuelidate@0.7.4/dist/vuelidate.min.js"></script>
+        <script src="https://unpkg.com/vuelidate@0.7.4/dist/validators.min.js"></script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+    </head> 
+    <body>         
+        <div id="app" class="container">               
+                <h2>Listagem de patentes do CS</h2>   
+
+                <table class="table table-striped" >
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Cor</th>
+                        <th scope="col">Data de criação</th>
+                        <th scope="col">Logotipo</th>
+                        <th scope="col">Quantidade de pontos</th>
+                    </tr>                     
+                    <tbody>
+                        <tr v-for="(p, indice) in patentes">                                                
+                                <td>{{indice}}</td>
+                                <td>{{p.nome}}</td>
+                                <td>{{p.cor}}</td>
+                                <td>{{p.dt_criacao}}</td>
+                                <td>{{p.logo}}</td>
+                                <td>{{p.qtd_pontos}}</td>
+                                <td><button v-on:click="editPatente(indice)" class="btn" type="button">Alterar</button></td>
+                                <td><button v-on:click="remPatente(indice)" class="btn" type="button">Remover</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form id="formulario">
+                                        
+                    <h3>Formulário para cadastrar uma nova patente</h3>                        
+
+                        <div class="form-group">
+                            <label for="inputIndice">#:</label>
+                            <input type="text" v-model="nova_patente.indice" class="form__input" id="inputIndice" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputNome">Nome da patente:</label>
+                            <input type="text" v-model="nova_patente.nome" class="form__input" id="inputNome">
+                        </div>
+                        <div class="form-group">
+                            <label for="inputCor">Cor:</label>
+                            <select id="inputCor" v-model="nova_patente.cor">
+                                <option id="inputCor.bronze" value="Bronze">Bronze</option>
+                                <option id="inputCor.prata" value="Prata">Prata</option>
+                                <option id="inputCor.ouro" value="Ouro">Ouro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Data de criação:</label>
+                            <input type="date" v-model="nova_patente.dt_criacao" class="form__input" id="inputDt_criacao">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Logo:</label>
+                            <input type="file" v-model="nova_patente.logo" class="form__input" id="inputLogo">
+                        </div>
+
+                        <div class="error" v-if="!$v.nova_patente.qtd_pontos.between">Informe um valor entre {{$v.nova_patente.qtd_pontos.$params.between.min}} e {{$v.nova_patente.qtd_pontos.$params.between.max}}.</div>
+                        <div class="form-group">
+                            <label for="">Quantidade de pontos:</label>
+                            <input type="number" v-model="nova_patente.qtd_pontos" class="form__input" id="inputQtd_pontos">
+                        </div>
+                        
+                        <button @click="addPatente($v)" class="btn btn-primary" type="button">Salvar</button>
+                        <button @click="cleanFormulario" class="btn btn-primary" type="button">Limpar</button>
+                                                                        
+                </form>
+      
+
+        </div>       
+    </body>
+    <script type="text/javascript">
+
+        var data = new Date;
+
+        $(document).ready(function() {
+            var dados = { 
+                    patentes: [{nome: 'Tenente', cor: 'Ouro', dt_criacao: '03/03/2022', logo: '', qtd_pontos: 100}],
+
+                    nova_patente: []
+            };                     
+         
+        Vue.use(window.vuelidate.default);
+
+        const {
+            required,
+            between
+        } = window.validators
+
+          new Vue({ 
+                el: '#app', 
+                data: dados,
+                validations: {
+
+                    nova_patente: {
+                                    nome: {
+                                        required, 
+                                    },
+                                    cor: {
+                                        required,                                        
+                                    },
+                                    dt_criacao: {
+                                        required,
+                                    },
+                                    qtd_pontos: {
+                                        required,
+                                        between: between(1, 100)
+                                    }
+                    }
+                },
+                methods: { 
+
+                    addPatente: function (v) {
+                        
+                        if(!v.$invalid){
+
+                            if(isNaN(parseInt(this.nova_patente.indice))){
+                                
+                                this.patentes.push({nome: this.nova_patente.nome, 
+                                    cor: this.nova_patente.cor,
+                                    dt_criacao: this.nova_patente.dt_criacao,
+                                    logo: this.nova_patente.logo,
+                                    qtd_pontos: this.nova_patente.qtd_pontos
+                                }
+                                                );
+                                                console.log(this);
+                                alert('Nova patente cadastrada !');
+
+                            }else{
+
+                                this.patentes[this.nova_patente.indice] = {nome: this.nova_patente.nome, 
+                                                 cor: this.nova_patente.cor, 
+                                                 dt_criacao: this.nova_patente.dt_criacao, 
+                                                 logo: this.nova_patente.logo, 
+                                                 qtd_pontos: this.nova_patente.qtd_pontos
+                                                };
+
+                                alert('Patente alterada !');
+                            }
+                            this.cleanFormulario();
+
+                        }else{
+                            alert("Formulário incompleto!");
+                        }
+                    },
+
+                    editPatente: function (param_index) {
+
+                        this.nova_patente.indice = param_index;
+                        this.nova_patente.nome = this.patentes[param_index].nome; 
+                        this.nova_patente.cor = this.patentes[param_index].cor;
+                        this.nova_patente.dt_criacao = this.patentes[param_index].dt_criacao;
+                        this.nova_patente.logo = this.patentes[param_index].logo;
+                        this.nova_patente.qtd_pontos = this.patentes[param_index].qtd_pontos;
+                    },
+
+                    remPatente: function(param_index){
+                        
+                        var r = confirm("Deseja realmente remover a patente " + this.patentes[param_index].nome);
+                        if (r == true) {
+                                                  
+                            this.patentes.splice(param_index, 1);
+
+                            alert('Removeu a patente. ');
+
+                        } else {
+
+                            alert('A patente: ' + this.patentes[param_index].nome + " não foi removido.");
+                        }                        
+                        
+                    },
+                    
+                    cleanFormulario: function() {
+
+                        this.nova_patente.indice = '';
+                        this.nova_patente.nome = ''; 
+                        this.nova_patente.cor = '';
+                        this.nova_patente.dt_criacao = '';
+                        this.nova_patente.logo = '';
+                        this.nova_patente.qtd_pontos = '';
+                    }
+
+                }
+            }); 
+        });
+
+    </script> 
+   
+ </html>
